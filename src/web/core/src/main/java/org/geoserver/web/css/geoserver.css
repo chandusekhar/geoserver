@@ -232,6 +232,7 @@ padding: 5px;
 #main {
 border-top: 2px solid #c6e09b;
 background: url(../img/main-bg.png) repeat-x;
+width: 100%;
 }
 
 #sidebar, 
