@@ -1,4 +1,4 @@
-/* (c) 2014 Open Source Geospatial Foundation - all rights reserved
+/* (c) 2014-2015 Open Source Geospatial Foundation - all rights reserved
  * (c) 2014 OpenPlans
  * This code is licensed under the GPL 2.0 license, available at the root
  * application directory.
@@ -279,37 +279,5 @@ public class Resources {
         } catch (IOException e) {
             return false;
         }
-    }
-
-    /**
-     * Deletes a resource, if the resource is a directory, the method will recurse down.
-     * 
-     * @param resource
-     * @return true if resource(s) were deleted
-     */
-    public static boolean delete(Resource resource) throws IOException {
-        boolean deleted;
-        switch (resource.getType()) {
-        case DIRECTORY:
-            for (Resource child : resource.list()) {
-                deleted = delete(child);
-                if (!deleted) {
-                    return false; // failed to delete child
-                }
-            }
-            // fall in the single resource case and delete the containing directory
-
-        case RESOURCE:
-            deleted = resource.delete();
-            if (!deleted) {
-                return false; // failed to delete resource
-            }
-            break;
-
-        case UNDEFINED:
-            // nothing to do
-            break;
-        }
-        return true;
     }
 }

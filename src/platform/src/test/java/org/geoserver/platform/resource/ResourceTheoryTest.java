@@ -1,4 +1,4 @@
-/* (c) 2014 Open Source Geospatial Foundation - all rights reserved
+/* (c) 2014-2015 Open Source Geospatial Foundation - all rights reserved
  * (c) 2014 OpenPlans
  * This code is licensed under the GPL 2.0 license, available at the root
  * application directory.
@@ -194,23 +194,23 @@ public abstract class ResourceTheoryTest {
     }
     
     @Theory
-    public void theoryLeavesHaveNoListOfChildren(String path) throws Exception {
+    public void theoryLeavesHaveEmptyListOfChildren(String path) throws Exception {
         Resource res = getResource(path);
         assumeThat(res, is(resource()));
         
         Collection<Resource> result = res.list();
         
-        assertThat(result, nullValue());
+        assertThat(result, empty());
     }
     
     @Theory
-    public void theoryUndefinedHaveNullListOfChildren(String path) throws Exception {
+    public void theoryUndefinedHaveEmptyListOfChildren(String path) throws Exception {
         Resource res = getResource(path);
         assumeThat(res, is(undefined()));
         
         Collection<Resource> result = res.list();
         
-        assertThat(result, nullValue());
+        assertThat(result, empty());
     }
     
     @Theory
@@ -506,7 +506,7 @@ public abstract class ResourceTheoryTest {
         Collection<Resource> result = res.list();        
         assumeThat(result.size(), greaterThan(0));
         
-        assertTrue(Resources.delete(res));
+        assertTrue(res.delete());
         
     }
 }

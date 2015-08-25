@@ -1,4 +1,4 @@
-/* (c) 2014 Open Source Geospatial Foundation - all rights reserved
+/* (c) 2014-2015 Open Source Geospatial Foundation - all rights reserved
  * (c) 2014 OpenPlans
  * This code is licensed under the GPL 2.0 license, available at the root
  * application directory.
@@ -169,7 +169,7 @@ public final class Files {
 
         @Override
         public List<Resource> list() {
-            return null;
+            return Collections.emptyList();
         }
 
         @Override
@@ -184,7 +184,7 @@ public final class Files {
 
         @Override
         public boolean delete() {
-            return file.delete();
+            return Files.delete(file);
         }
 
         @Override
@@ -441,9 +441,6 @@ public final class Files {
      * @returns true if any file present is removed
      */
     public static boolean delete(File file) {
-        if( file == null || !file.exists() ){
-            return true; // already done
-        }
         if( file.isDirectory()){
             emptyDirectory(file);    
         }
