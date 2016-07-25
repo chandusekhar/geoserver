@@ -1,4 +1,4 @@
-/* Copyright (c) 2015 OpenPlans - www.openplans.org. All rights reserved.
+/* (c) 2015 Open Source Geospatial Foundation - all rights reserved
  * This code is licensed under the GPL 2.0 license, available at the root
  * application directory.
  */
@@ -58,9 +58,9 @@ public class JDBCResourceStoreFactoryBean implements FactoryBean<ResourceStore>,
      * 
      * @param resourceWatcher
      */
-    public void setResourceWatcher(ResourceNotificationDispatcher resourceWatcher) {
+    public void setResourceNotificationDispatcher(ResourceNotificationDispatcher resourceWatcher) {
         if (resourceStore instanceof JDBCResourceStore) {
-            ((JDBCResourceStore) resourceStore).setResourceWatcher(resourceWatcher);
+            ((JDBCResourceStore) resourceStore).setResourceNotificationDispatcher(resourceWatcher);
         }
     }
     

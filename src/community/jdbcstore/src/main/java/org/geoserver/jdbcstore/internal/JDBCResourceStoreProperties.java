@@ -1,4 +1,4 @@
-/* Copyright (c) 2015 OpenPlans - www.openplans.org. All rights reserved.
+/* (c) 2015 Open Source Geospatial Foundation - all rights reserved
  * This code is licensed under the GPL 2.0 license, available at the root
  * application directory.
  */
@@ -38,7 +38,7 @@ public class JDBCResourceStoreProperties extends JDBCLoaderProperties {
      * Directories that are to be ignored by the JDBCStore: they will not be imported and they will be retrieved
      * from the file system.  
      * 
-     * @return
+     *
      */
     public String[] getIgnoreDirs() {
         return getProperty("ignoreDirs", "").split(",");

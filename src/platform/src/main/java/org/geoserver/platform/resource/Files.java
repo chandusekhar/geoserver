@@ -1,4 +1,4 @@
-/* (c) 2014-2015 Open Source Geospatial Foundation - all rights reserved
+/* (c) 2014-2016 Open Source Geospatial Foundation - all rights reserved
  * (c) 2014 OpenPlans
  * This code is licensed under the GPL 2.0 license, available at the root
  * application directory.
@@ -39,12 +39,11 @@ public final class Files {
      * in the data directory.
      */
     static final class ResourceAdaptor implements Resource {
-        private static final long serialVersionUID = -3529072360389761648L;
         
         final File file;
 
         private ResourceAdaptor(File file) {
-            this.file = file;
+            this.file = file.getAbsoluteFile();
         }
 
         @Override
@@ -66,11 +65,11 @@ public final class Files {
         }
         @Override
         public void addListener(ResourceListener listener) {
-            watcher.addListener( file, path(), listener );
+            watcher.addListener(path(), listener);
         }
         @Override
         public void removeListener(ResourceListener listener) {
-            watcher.removeListener( file, path(), listener );
+            watcher.removeListener(path(), listener);
         }
 
         @Override
@@ -272,7 +271,7 @@ public final class Files {
     
     /**
      *
-     * @Deprecated use {@link Resources#fromURL(Resource, String)}
+     * @deprecated use {@link Resources#fromURL(Resource, String)}
      */
     @Deprecated 
     public static File url(File baseDirectory, String url) {
@@ -291,7 +290,7 @@ public final class Files {
      * Adapter allowing a File reference to be quickly used a Resource.
      * 
      * This is used as a placeholder when updating code to use resource, while still maintaining deprecated File methods: 
-     * <pre></code>
+     * <pre><code>
      * //deprecated
      * public FileWatcher( File file ){
      *    this.resource = Files.asResource( file );
@@ -325,9 +324,7 @@ public final class Files {
     /**
      * Safe buffered output stream to temp file, output stream close used to renmae file into place.
      * 
-     * @param file
      * @return buffered output stream to temporary file (output stream close used to rename file into place)
-     * @throws FileNotFoundException
      */
     public static OutputStream out(final File file) throws FileNotFoundException {
         // first save to a temp file
@@ -411,8 +408,7 @@ public final class Files {
      * file that cannot be deleted a warning log will be issued.
      * 
      * @param file File to remove
-     * @throws IOException
-     * @returns true if any file present is removed
+     * @return true if any file present is removed
      */
     public static boolean delete(File file) {
         if( file.isDirectory()){

@@ -9,7 +9,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -43,7 +45,7 @@ public class Resources {
      * Test if the file or directory denoted by this resource exists.
      * 
      * @see File#exists()
-     * @param resource
+     * @param resource Resource indicated
      * @return true If resource is not UNDEFINED
      */
     public static boolean exists(Resource resource) {
@@ -54,7 +56,7 @@ public class Resources {
      * Test if the file or directory can be read.
      * 
      * @see File#canRead()
-     * @param resource
+     * @param resource Resource indicated
      * @return true If resource is not UNDEFINED
      */
     public static boolean canRead(Resource resource) {
@@ -75,10 +77,13 @@ public class Resources {
      * 
      * 
      * @see File#isHidden()
-     * @param resource
+     * @param resource Resource indicated
      * @return true If resource is hidden
      */
     public static boolean isHidden(Resource resource) {
+        if (resource instanceof SerializableResourceWrapper) {
+            resource = ((SerializableResourceWrapper) resource).delegate;
+        }
         if (resource instanceof FileSystemResourceStore.FileSystemResource || 
                 resource instanceof Files.ResourceAdaptor) {
             //this is a file based resource, just check the file
@@ -98,7 +103,7 @@ public class Resources {
      * @see Resource#dir()
      * @see Resource#file()
      * 
-     * @param resource
+     * @param resource Resource indicated
      * @return Existing file, or null for {@link Resource.Type#UNDEFINED}.
      */
     public static File find(Resource resource) {
@@ -119,14 +124,14 @@ public class Resources {
     
     /**
      * Checks {@link Resource#getType()} and returns existing dir() if available, or null for {@link Resource.Type#UNDEFINED} or
-     * {@link Resource.Type#FILE}.
+     * {@link Resource.Type#RESOURCE}.
      * 
      * This approach is a reproduction of GeoServerDataDirectory findDataDir logic and will not create a new directory.
      * 
      * @see Resource#dir()
      * 
-     * @param resource
-     * @return Existing directory, or null
+     * @param resource Resource indicated
+     * @return File reference to existing directory, or null for an existing file (or if directory does not exist)
      */
     public static File directory(Resource resource) {
         return directory(resource, false);
@@ -137,9 +142,9 @@ public class Resources {
      * 
      * @see Resource#dir()
      * 
-     * @param resource
-     * @param create
-     * @return directory, or null
+     * @param resource Resource indicated
+     * @param create true to create directory (if it does not exsist)
+     * @return File reference to (possibly new) directory
      */
     public static File directory(Resource resource, boolean create) {
         final File f;
@@ -165,7 +170,7 @@ public class Resources {
      * 
      * @see Resource#file()
      * 
-     * @param resource
+     * @param resource Resource indicated
      * @return Existing file, or null
      */
     public static File file(Resource resource) {
@@ -177,8 +182,8 @@ public class Resources {
      * 
      * @see Resource#file()
      * 
-     * @param resource
-     * @param create
+     * @param resource Resource indicated
+     * @param create true to create (if needed)
      * @return file, or null
      */
     public static File file(Resource resource, boolean create) {
@@ -202,9 +207,9 @@ public class Resources {
      * 
      * This approach is a reproduction of GeoServerResourceLoader createNewDirectory logic.
      * 
-     * @param resource
+     * @param resource Resource indicated
      * @return newly created file
-     * @throws IOException
+     * @throws IOException If directory could not be created (as file or directory already exists)
      */
     public static File createNewDirectory(Resource resource) throws IOException {
         switch (resource.getType()) {
@@ -226,9 +231,9 @@ public class Resources {
      * 
      * This approach is a reproduction of GeoServerResourceLoader createNewFile logic.
      * 
-     * @param resource
+     * @param resource Resource indicated
      * @return newly created file
-     * @throws IOException
+     * @throws IOException If path indicates a file (or directory) that already exists
      */
     public static File createNewFile(Resource resource) throws IOException {
         switch (resource.getType()) {
@@ -246,9 +251,9 @@ public class Resources {
     /**
      * Search for resources using pattern and last modified time.
      * 
-     * @param resource
-     * @param lastModified
-     * @return list of modified resoruces
+     * @param resource Resource indicated
+     * @param lastModified time stamp to search from
+     * @return list of modified resources
      */
     public static List<Resource> search(Resource resource, long lastModified) {
         if (resource.getType() == Type.DIRECTORY) {
@@ -274,7 +279,7 @@ public class Resources {
      * Write the contents of a stream into a resource
      * @param data data to write
      * @param destination resource to write to
-     * @throws IOException
+     * @throws IOException If data could not be copied to destination
      */
     public static void copy (InputStream data, Resource destination) throws IOException {
         try(OutputStream out = destination.out()) {
@@ -287,7 +292,7 @@ public class Resources {
      * 
      * @param data resource to read
      * @param destination resource to write to
-     * @throws IOException
+     * @throws IOException If data could not be copied to destination
      */
     public static void copy (Resource data, Resource destination) throws IOException {
         if (data.getType() == Type.DIRECTORY) {
@@ -306,7 +311,7 @@ public class Resources {
      * @param data data to write
      * @param directory parent directory to create the resource in
      * @param filename file name of the new resource
-     * @throws IOException
+     * @throws IOException If data could not be copied into indicated location
      */
     public static void copy (InputStream data, Resource directory, String filename) throws IOException {
         copy(data, directory.get(filename));
@@ -316,21 +321,20 @@ public class Resources {
      * Write the contents of a File to a new Resource with the same name inside a directory
      * @param data data to write
      * @param directory parent directory to create the resource in
-     * @throws IOException
+     * @throws IOException If file could not be copied into directory 
      */
     public static void copy (File data, Resource directory) throws IOException {
         String filename = data.getName();
         try(InputStream in = new FileInputStream(data)) {
-            copy(data, directory.get(filename));
+            copy(in, directory.get(filename));
         }
     }
     
     /**
      * Renames a resource by reading it and writing to the new resource, then deleting the old one.
      * This is not atomic.
-     * @param source
-     * @param destination
-     * @throws IOException
+     * @param source Resource to rename
+     * @param destination New resource location
      * @return true if successful, false if either the write or delete failed.
      */
     public static boolean renameByCopy(Resource source, Resource destination) {
@@ -378,7 +382,7 @@ public class Resources {
      * 
      * Recursively loops through directory to provide all children
      * 
-     * @param resource directory
+     * @param dir Resource of directory to list from  
      * @return list of children with recursive children
      */
     public static List<Resource> listRecursively(Resource dir) {
@@ -501,8 +505,7 @@ public class Resources {
      * <li>path - user supplied file path (operating specific specific)</li>
      * </ul>
      * 
-     * @param url File URL or path relative to data directory 
-     * 
+     * @param path File URL, or path, relative to data directory 
      * @return Resource indicated by provided URL 
      */
     public static Resource fromURL(String path) {
@@ -588,12 +591,13 @@ public class Resources {
      * Used to look up resources based on user provided url, using the Data Directory as base directory. 
      * 
      * Supports
+     * <ul>
      * <li>Actual URL to external resource using http or ftp protocol - will return null</li>
      * <li>Resource URL - will support resources from resource store</li>
      * <li>File URL - will support absolute file references</li>
      * <li>File URL - will support relative file references - this is deprecated, use resource: instead</li>
      * <li>Fake URLs - sde://user:pass@server:port - will return null.</li>
-     * 
+     * </ul>
      * @param url the url
      * @return corresponding Resource
      */
@@ -605,12 +609,13 @@ public class Resources {
      * Used to look up a resource based on user provided url. 
      * 
      * Supports
+     * <ul>
      * <li>Actual URL to external resource using http or ftp protocol - will return null</li>
      * <li>Resource URL - will support resources from resource store</li>
      * <li>File URL - will support absolute file references</li>
      * <li>File URL - will support relative file references - this is deprecated, use resource: instead</li>
      * <li>Fake URLs - sde://user:pass@server:port - will return null.</li>
-     * 
+     * </ul>
      * @param baseDirectory base directory for resource: or relative file: paths
      * @param url the url
      * @return corresponding Resource
@@ -628,8 +633,8 @@ public class Resources {
     /**
      * Create a URL from a resource.
      * 
-     * @param res
-     * @return
+     * @param res Resource to represent as a URL
+     * @return URL from an internal resource
      */
     public static URL toURL(final Resource res) {        
         try {
@@ -674,6 +679,131 @@ public class Resources {
         } catch (MalformedURLException e) {
             throw new IllegalStateException("Should not happen",e);
         }
+    }
+
+    /**
+     * Resource wrapper, serialization using resource path.
+     */
+    private static class SerializableResourceWrapper implements Serializable, Resource {
+        private static final long serialVersionUID = 1758097257412707071L;
+
+        private transient Resource delegate;
+        private String path;
+
+        private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
+            stream.defaultReadObject();
+            delegate = Resources.fromPath(path);
+        }
+
+        public SerializableResourceWrapper(Resource delegate) {
+            this.delegate = delegate;
+            path = delegate.path();
+        }
+
+        @Override
+        public String path() {
+            return path;
+        }
+
+        @Override
+        public String name() {
+            return delegate.name();
+        }
+
+        @Override
+        public Lock lock() {
+            return delegate.lock();
+        }
+
+        @Override
+        public void addListener(ResourceListener listener) {
+            delegate.addListener(listener);
+        }
+
+        @Override
+        public void removeListener(ResourceListener listener) {
+            delegate.removeListener(listener);
+        }
+
+        @Override
+        public InputStream in() {
+            return delegate.in();
+        }
+
+        @Override
+        public OutputStream out() {
+            return delegate.out();
+        }
+
+        @Override
+        public File file() {
+            return delegate.file();
+        }
+
+        @Override
+        public File dir() {
+            return delegate.dir();
+        }
+
+        @Override
+        public long lastmodified() {
+            return delegate.lastmodified();
+        }
+
+        @Override
+        public Resource parent() {
+            return new SerializableResourceWrapper(delegate.parent());
+        }
+
+        @Override
+        public Resource get(String resourcePath) {
+            return delegate.get(resourcePath);
+        }
+
+        @Override
+        public List<Resource> list() {
+            List<Resource> children = new ArrayList<Resource>();
+            for (Resource child : delegate.list()) {
+                children.add(new SerializableResourceWrapper(child));
+            }
+            return children;
+        }
+
+        @Override
+        public Type getType() {
+            return delegate.getType();
+        }
+
+        @Override
+        public boolean delete() {
+            return delegate.delete();
+        }
+
+        @Override
+        public boolean renameTo(Resource dest) {
+            return delegate.renameTo(dest);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof SerializableResourceWrapper)) {
+                return false;
+            }
+            return delegate.equals(((SerializableResourceWrapper) o).delegate);
+        }
+
+        @Override
+        public int hashCode() {
+            return delegate.hashCode();
+        }
+
+    }
+
+    public static Resource serializable(Resource resource) {
+        if (resource instanceof Serializable) {
+            return resource;
+        }
+        return new SerializableResourceWrapper(resource);
     }
 
 }

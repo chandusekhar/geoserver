@@ -1,4 +1,4 @@
-/* (c) 2014 - 2015 Open Source Geospatial Foundation - all rights reserved
+/* (c) 2014 - 2016 Open Source Geospatial Foundation - all rights reserved
  * (c) 2001 - 2013 OpenPlans
  * This code is licensed under the GPL 2.0 license, available at the root
  * application directory.
@@ -959,7 +959,7 @@ public class ResourcePool {
      * @param info
      * @param dataAccess
      * @param initializer
-     * @return
+     *
      */
     FeatureTypeCallback getFeatureTypeInitializer(FeatureTypeInfo info,
             DataAccess<? extends FeatureType, ? extends Feature> dataAccess) {
@@ -1030,7 +1030,7 @@ public class ResourcePool {
      * cache the result of computations made against a dirty object, nor the ones made against an 
      * object that still haven't been saved
      * @param info
-     * @return
+     *
      */
     boolean isCacheable(CatalogInfo info) {
         // saved?
@@ -1701,7 +1701,7 @@ public class ResourcePool {
     /**
      * Locates and returns a WMS {@link Layer} based on the configuration stored in WMSLayerInfo 
      * @param info
-     * @return
+     *
      */
     public Layer getWMSLayer(WMSLayerInfo info) throws IOException {
      // check which actual name we have to use
@@ -1792,11 +1792,11 @@ public class ResourcePool {
      * @return A reader for the style.
      */
     public BufferedReader readStyle( StyleInfo style ) throws IOException {
-        File styleFile = dataDir().findStyleSldFile(style);
-        if( styleFile == null ) {
-            throw new IOException( "No such file: " + style.getFilename() );
+        Resource styleResource = dataDir().style(style);
+        if( styleResource == null ) {
+            throw new IOException( "No such resource: " + style.getFilename() );
         }
-        return new BufferedReader( new InputStreamReader( new FileInputStream( styleFile ) ) );
+        return new BufferedReader(new InputStreamReader(styleResource.in()));
         
     }
     

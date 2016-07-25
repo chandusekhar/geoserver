@@ -1,4 +1,4 @@
-/* Copyright (c) 2015 OpenPlans - www.openplans.org. All rights reserved.
+/* (c) 2015 Open Source Geospatial Foundation - all rights reserved
  * This code is licensed under the GPL 2.0 license, available at the root
  * application directory.
  */
@@ -19,7 +19,6 @@ public interface DatabaseTestSupport extends AutoCloseable {
     
     /** 
      * Ensure the database in initialised with the JDBCStore schema 
-     * @throws Exception
      */
     public void initialize() throws Exception;
     
@@ -49,13 +48,13 @@ public interface DatabaseTestSupport extends AutoCloseable {
     
     /**
      * Get the data source
-     * @return
+     *
      */
     public DataSource getDataSource();
     
     /**
      * Get a connection to the data source
-     * @return
+     *
      * @throws SQLException
      */
     public Connection getConnection() throws SQLException;
